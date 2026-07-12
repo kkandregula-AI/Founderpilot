@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07080C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="FounderPilot X — an orchestrated 13-agent autonomous company builder with human-in-command guardrails.">
+<title>FounderPilot X · Autonomous Company Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#07080C; --panel:#10131B; --panel2:#151926; --raise:#1A1F2E;
+  --line:#232937; --line2:#2E3547;
+  --gold:#D8B36A; --gold-hi:#EFD9A7; --gold-dim:rgba(216,179,106,.16);
+  --text:#E9E5DA; --mut:#8B93A5; --faint:#5C6478;
+  --ok:#5FBF8A; --warn:#E0A63E; --danger:#E0685A; --run:#6FA8DC;
+  --r:14px; --r-sm:9px;
+  --mono:'DM Mono',ui-monospace,monospace;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --disp:'Cinzel',serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55;
+  background-image:radial-gradient(1100px 500px at 50% -160px,rgba(216,179,106,.07),transparent 60%);
+  min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+::selection{background:var(--gold);color:#100D06}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}}
+
+/* ---------- masthead ---------- */
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+header{padding:22px 0 10px;text-align:center;position:relative}
+.crest{display:inline-flex;align-items:center;gap:12px;justify-content:center}
+.crest svg{width:40px;height:40px;flex:none}
+h1{font-family:var(--disp);font-weight:600;font-size:clamp(21px,4.6vw,30px);letter-spacing:.14em;color:var(--gold-hi)}
+h1 .x{color:var(--gold);font-weight:700}
+.tagline{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--mut);margin-top:6px}
+.mode-pill{position:absolute;right:0;top:24px;display:flex;align-items:center;gap:7px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--mut);
+  border:1px solid var(--line);border-radius:99px;padding:6px 12px;background:var(--panel)}
+.mode-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+.mode-pill.live .dot{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.mode-pill.live{color:var(--ok);border-color:rgba(95,191,138,.4)}
+@media(max-width:640px){.mode-pill{position:static;margin:10px auto 0;width:max-content}}
+
+/* ---------- mission bar ---------- */
+.mission{margin:18px auto 6px;max-width:760px}
+.mission-box{display:flex;gap:0;border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;
+  background:linear-gradient(180deg,var(--panel2),var(--panel));box-shadow:0 12px 34px rgba(0,0,0,.45)}
+.mission-box input{flex:1;background:transparent;border:none;padding:16px 18px;font-size:16px;color:var(--text);min-width:0}
+.mission-box input::placeholder{color:var(--faint)}
+.btn-launch{background:linear-gradient(180deg,var(--gold-hi),var(--gold));color:#181206;font-weight:700;
+  padding:0 22px;font-size:14px;letter-spacing:.06em;white-space:nowrap;transition:filter .15s}
+.btn-launch:hover{filter:brightness(1.07)}
+.btn-launch:disabled{filter:grayscale(.7) brightness(.7);cursor:not-allowed}
+.mission-hints{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:99px;
+  padding:5px 12px;background:var(--panel);transition:border-color .15s,color .15s}
+.hint:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:4px;justify-content:center;margin:22px auto 16px;border-bottom:1px solid var(--line);
+  overflow-x:auto;scrollbar-width:none;padding:0 8px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  padding:10px 15px;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s}
+.tab[aria-selected="true"]{color:var(--gold);border-bottom-color:var(--gold)}
+.tab .badge{display:inline-block;min-width:17px;text-align:center;background:var(--danger);color:#fff;
+  border-radius:99px;font-size:10px;padding:1px 5px;margin-left:5px;vertical-align:1px}
+.tab .badge:empty{display:none}
+.panel{display:none}
+.panel.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ---------- section titling ---------- */
+.sec-title{font-family:var(--disp);font-size:16px;letter-spacing:.16em;color:var(--gold-hi);
+  text-transform:uppercase;margin:22px 0 4px;display:flex;align-items:center;gap:10px}
+.sec-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
+.sec-sub{color:var(--mut);font-size:13px;margin-bottom:14px}
+
+/* ---------- constellation ---------- */
+.stage-card{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden;position:relative}
+#orbit{display:block;width:100%;height:auto;touch-action:manipulation}
+.mission-strip{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(216,179,106,.05),transparent)}
+.ms-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--gold);
+  border:1px solid rgba(216,179,106,.4);border-radius:6px;padding:3px 8px;flex:none;background:var(--gold-dim)}
+.ms-text{font-size:14px;color:var(--faint);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mission-strip.live .ms-text{color:var(--gold-hi);font-weight:600;font-family:var(--disp);letter-spacing:.04em;font-size:14.5px}
+.stage-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  border-top:1px solid var(--line);padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--mut);flex-wrap:wrap}
+.legend{display:flex;gap:14px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* ---------- pipeline ---------- */
+.pipeline{display:grid;gap:8px;margin-top:14px}
+.step{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;
+  border:1px solid var(--line);border-radius:var(--r-sm);background:var(--panel);padding:11px 14px;transition:border-color .2s,background .2s}
+.step .no{font-family:var(--mono);font-size:12px;color:var(--faint);text-align:right}
+.step .lbl{font-weight:600;font-size:14px}
+.step .who{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:1px}
+.step .st{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--faint)}
+.step.run{border-color:rgba(111,168,220,.55);background:linear-gradient(180deg,rgba(111,168,220,.08),var(--panel))}
+.step.run .st{color:var(--run)}
+.step.done .st{color:var(--ok)}
+.step.done .no{color:var(--ok)}
+.step.gate{border-color:rgba(224,166,62,.55)}
+.step.gate .st{color:var(--warn)}
+.step.blocked .st{color:var(--danger)}
+
+/* ---------- agent grid ---------- */
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
+.acard{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:15px;position:relative;
+  transition:transform .15s,border-color .15s}
+.acard:hover{transform:translateY(-2px);border-color:var(--line2)}
+.acard .top{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.sigil{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:17px;flex:none;
+  background:var(--raise);border:1px solid var(--line2)}
+.acard h3{font-size:15px;font-weight:700;letter-spacing:.02em}
+.acard .role{font-size:12.5px;color:var(--mut);min-height:36px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;border:1px solid var(--line2);
+  border-radius:99px;padding:3px 9px;color:var(--mut)}
+.chip.model{color:var(--gold);border-color:rgba(216,179,106,.4);background:var(--gold-dim)}
+.chip.gate{color:var(--warn);border-color:rgba(224,166,62,.4)}
+.alight{position:absolute;top:14px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.acard.busy .alight{background:var(--run);box-shadow:0 0 9px var(--run);animation:pulse 1.1s infinite}
+.acard.done .alight{background:var(--ok)}
+@keyframes pulse{50%{opacity:.35}}
+
+/* ---------- memory / artifacts ---------- */
+.mem-grid{display:grid;gap:10px;margin-top:14px}
+.art{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden}
+.art summary{list-style:none;display:flex;align-items:center;gap:11px;padding:13px 15px;cursor:pointer}
+.art summary::-webkit-details-marker{display:none}
+.art .scope-tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;border-radius:6px;padding:3px 8px;
+  border:1px solid var(--line2);color:var(--mut);flex:none}
+.art .a-title{font-weight:600;font-size:14px;flex:1}
+.art .a-by{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.art .body{border-top:1px solid var(--line);padding:14px 16px;font-size:13.5px;color:#C9CEDB;white-space:pre-wrap}
+.art .body strong{color:var(--gold-hi)}
+.empty{border:1px dashed var(--line2);border-radius:var(--r);padding:34px 18px;text-align:center;color:var(--faint);
+  font-size:13.5px;margin-top:14px}
+.empty b{display:block;color:var(--mut);font-family:var(--disp);letter-spacing:.12em;font-size:14px;margin-bottom:6px}
+
+/* ---------- guardrails ---------- */
+.matrix-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);margin-top:14px}
+table.matrix{border-collapse:collapse;width:100%;min-width:720px;font-size:12px}
+.matrix th,.matrix td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--line)}
+.matrix th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--mut);text-transform:uppercase;
+  position:sticky;top:0;background:var(--panel2)}
+.matrix td:first-child,.matrix th:first-child{text-align:left;position:sticky;left:0;background:var(--panel);white-space:nowrap;font-weight:600;font-size:12.5px}
+.perm{font-family:var(--mono);font-size:10.5px;border-radius:5px;padding:2px 7px;display:inline-block}
+.perm.rw{color:var(--ok);background:rgba(95,191,138,.12)}
+.perm.r{color:var(--run);background:rgba(111,168,220,.12)}
+.perm.no{color:var(--faint)}
+.gates{display:grid;gap:10px;margin-top:14px}
+.gate-card{border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:var(--r-sm);
+  background:var(--panel);padding:13px 15px}
+.gate-card h4{font-size:14px;display:flex;align-items:center;gap:8px}
+.gate-card p{font-size:12.5px;color:var(--mut);margin-top:3px}
+
+/* ---------- approvals ---------- */
+.appr{border:1px solid rgba(224,166,62,.45);border-radius:var(--r);background:linear-gradient(180deg,rgba(224,166,62,.06),var(--panel));
+  padding:15px;margin-top:12px}
+.appr h4{font-size:14.5px;display:flex;gap:8px;align-items:center}
+.appr .req{font-size:13px;color:#CBB891;margin:7px 0 11px;white-space:pre-wrap}
+.appr .row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border-radius:9px;padding:9px 16px;font-weight:600;font-size:13px;border:1px solid var(--line2);
+  background:var(--raise);transition:filter .15s}
+.btn:hover{filter:brightness(1.15)}
+.btn.ok{background:rgba(95,191,138,.15);border-color:rgba(95,191,138,.5);color:var(--ok)}
+.btn.no{background:rgba(224,104,90,.12);border-color:rgba(224,104,90,.5);color:var(--danger)}
+.btn.gold{background:linear-gradient(180deg,var(--gold-hi),var(--gold));color:#181206;border:none;font-weight:700}
+
+/* ---------- logs ---------- */
+.log{border:1px solid var(--line);border-radius:var(--r);background:#0B0D13;margin-top:14px;
+  font-family:var(--mono);font-size:12px;line-height:1.7;padding:14px 16px;max-height:430px;overflow-y:auto}
+.log .t{color:var(--faint)}
+.log .ag{color:var(--gold)}
+.log .msg-line{color:#AEB6C6}
+.log .ok{color:var(--ok)} .log .warn{color:var(--warn)} .log .err{color:var(--danger)} .log .sys{color:var(--run)}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;background:rgba(4,5,9,.72);backdrop-filter:blur(5px);display:none;
+  place-items:center;z-index:50;padding:18px}
+.modal.on{display:grid}
+.sheet{width:min(520px,100%);border:1px solid var(--line2);border-radius:18px;background:var(--panel2);
+  padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.6);max-height:88vh;overflow-y:auto}
+.sheet h3{font-family:var(--disp);letter-spacing:.12em;font-size:15px;color:var(--gold-hi);margin-bottom:12px;text-transform:uppercase}
+.sheet label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--mut);
+  text-transform:uppercase;margin:14px 0 6px}
+.sheet input[type=password],.sheet input[type=text],.sheet select{width:100%;background:var(--ink);border:1px solid var(--line2);
+  border-radius:9px;padding:11px 12px;font-size:14px;color:var(--text)}
+.sheet .note{font-size:12.5px;color:var(--mut);margin-top:12px;line-height:1.6}
+.sheet .note b{color:var(--gold)}
+.sheet .row{display:flex;gap:9px;margin-top:18px;justify-content:flex-end}
+
+/* ---------- honesty ledger ---------- */
+.honesty{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:16px;margin-top:14px;font-size:13px;color:var(--mut)}
+.honesty h4{font-family:var(--disp);letter-spacing:.12em;font-size:13px;color:var(--gold-hi);text-transform:uppercase;margin-bottom:8px}
+.honesty .hrow{display:grid;grid-template-columns:16px 1fr;gap:9px;padding:5px 0}
+.honesty .real{color:var(--ok)} .honesty .sim{color:var(--warn)}
+
+footer{margin:40px 0 26px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--faint)}
+footer b{color:var(--gold)}
+.toolbar{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="crest">
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="4.4" fill="#D8B36A"/>
+      <g stroke="#D8B36A" stroke-width="1" opacity=".55">
+        <circle cx="24" cy="24" r="15.5" fill="none"/>
+      </g>
+      <g fill="#EFD9A7">
+        <circle cx="24" cy="8.5" r="2"/><circle cx="37.4" cy="16.2" r="2"/><circle cx="37.4" cy="31.8" r="2"/>
+        <circle cx="24" cy="39.5" r="2"/><circle cx="10.6" cy="31.8" r="2"/><circle cx="10.6" cy="16.2" r="2"/>
+      </g>
+      <g stroke="#8f7a4d" stroke-width=".8" opacity=".8">
+        <line x1="24" y1="12" x2="24" y2="19.6"/><line x1="34.4" y1="18" x2="28" y2="21.7"/>
+        <line x1="34.4" y1="30" x2="28" y2="26.3"/><line x1="24" y1="36" x2="24" y2="28.4"/>
+        <line x1="13.6" y1="30" x2="20" y2="26.3"/><line x1="13.6" y1="18" x2="20" y2="21.7"/>
+      </g>
+    </svg>
+    <h1>FOUNDERPILOT <span class="x">X</span></h1>
+  </div>
+  <div class="tagline">The Autonomous Company Builder · 13 Agents · One Command</div>
+  <button class="mode-pill" id="modePill" onclick="openSettings()" aria-label="Mode and settings">
+    <span class="dot"></span><span id="modeLabel">DEMO MODE · TAP FOR LIVE</span>
+  </button>
+</header>
+
+<div class="mission">
+  <div class="mission-box">
+    <input id="missionInput" type="text" placeholder='Give the company one command… e.g. "Build a SaaS for dentists"'
+      aria-label="Company mission command" onkeydown="if(event.key==='Enter')launchMission()">
+    <button class="btn-launch" id="launchBtn" onclick="launchMission()">FOUND IT ⟶</button>
+  </div>
+  <div class="mission-hints">
+    <button class="hint" onclick="setMission('Build a SaaS for dentists')">SaaS for dentists</button>
+    <button class="hint" onclick="setMission('Build a marketplace for Telugu wedding vendors')">Telugu wedding vendors</button>
+    <button class="hint" onclick="setMission('Build an app for Indian kirana store credit')">Kirana credit app</button>
+    <button class="hint" onclick="setMission('Build a tool for hackathon judges')">Hackathon judging tool</button>
+  </div>
+</div>
+
+<nav class="tabs" role="tablist" aria-label="Console sections">
+  <button class="tab" role="tab" aria-selected="true"  data-tab="command"  onclick="showTab('command')">⌘ Command</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="agents"   onclick="showTab('agents')">Agents</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="memory"   onclick="showTab('memory')">Memory</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="guard"    onclick="showTab('guard')">Guardrails<span class="badge" id="apprBadge"></span></button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="logs"     onclick="showTab('logs')">Logs</button>
+</nav>
+
+<!-- ============ COMMAND ============ -->
+<section class="panel on" id="panel-command">
+  <div class="sec-title">Orchestration Constellation</div>
+  <p class="sec-sub">Every agent is a specialist on its own model. The Orchestrator routes work; gold pulses are messages crossing the wire. Amber halts mean the system is waiting for <b>you</b> — the concerned authority.</p>
+  <div class="stage-card">
+    <div class="mission-strip" id="missionStrip">
+      <span class="ms-eyebrow">MISSION</span>
+      <span class="ms-text" id="missionText">No active mission — give the company one command above.</span>
+    </div>
+    <canvas id="orbit" width="1060" height="640" aria-label="Live agent interaction graph"></canvas>
+    <div class="stage-foot">
+      <div class="legend">
+        <span><i style="background:var(--faint)"></i>idle</span>
+        <span><i style="background:var(--run)"></i>working</span>
+        <span><i style="background:var(--ok)"></i>done</span>
+        <span><i style="background:var(--warn)"></i>awaiting founder approval</span>
+        <span><i style="background:var(--gold)"></i>message in flight</span>
+      </div>
+      <span id="orbitStatus">system idle — awaiting mission</span>
+    </div>
+  </div>
+
+  <div class="sec-title" style="margin-top:26px">Company Build Pipeline</div>
+  <p class="sec-sub">Twelve stages, one command. Stages marked ⚑ cannot proceed without founder sign-off — money, deployment and outbound communication are never autonomous.</p>
+  <div class="pipeline" id="pipeline"></div>
+
+  <div class="toolbar">
+    <button class="btn" onclick="resetRun()">Reset run</button>
+    <button class="btn" onclick="showTab('memory')">View artifacts →</button>
+  </div>
+</section>
+
+<!-- ============ AGENTS ============ -->
+<section class="panel" id="panel-agents">
+  <div class="sec-title">The Thirteen</div>
+  <p class="sec-sub">Each agent runs a dedicated system charter on the model best suited to its craft — deep reasoning on Opus, structured building on Sonnet, high-volume communication on Haiku. Charters, scopes and gates are enforced by the Orchestrator, not by trust.</p>
+  <div class="agrid" id="agentGrid"></div>
+</section>
+
+<!-- ============ MEMORY ============ -->
+<section class="panel" id="panel-memory">
+  <div class="sec-title">Shared Company Memory</div>
+  <p class="sec-sub">The blackboard every agent reads from and writes to — scoped by permission. This is how independent agents stay coherent: not by talking to each other directly, but through governed shared state.</p>
+  <div class="mem-grid" id="memGrid"></div>
+</section>
+
+<!-- ============ GUARDRAILS ============ -->
+<section class="panel" id="panel-guard">
+  <div class="sec-title">Founder Approval Queue</div>
+  <p class="sec-sub">Actions that spend money, ship code, sign documents or speak to the outside world stop here first.</p>
+  <div id="apprList"></div>
+
+  <div class="sec-title" style="margin-top:26px">Access Control Matrix</div>
+  <p class="sec-sub">Memory-scope permissions per agent. <span class="perm rw">RW</span> read &amp; write · <span class="perm r">R</span> read only · <span class="perm no">—</span> no access. Support never sees finance; Marketing sees a budget envelope, never the ledger.</p>
+  <div class="matrix-wrap"><table class="matrix" id="matrix"></table></div>
+
+  <div class="sec-title" style="margin-top:26px">Hard Gates</div>
+  <div class="gates" id="gateList"></div>
+
+  <div class="honesty">
+    <h4>Honesty Ledger — what is real here</h4>
+    <div class="hrow"><span class="real">●</span><span><b>Real:</b> multi-agent orchestration, per-agent model routing &amp; charters, scoped memory, approval gates, and (in Live mode) genuine Claude API reasoning per agent with your key.</span></div>
+    <div class="hrow"><span class="sim">●</span><span><b>Simulated:</b> deployment, ad spend, company registration and customer inboxes are modeled, not executed. No AI should — or legally can — incorporate a company, move money or ship to production without a human. That is a feature, not a gap.</span></div>
+  </div>
+</section>
+
+<!-- ============ LOGS ============ -->
+<section class="panel" id="panel-logs">
+  <div class="sec-title">Orchestrator Wire</div>
+  <p class="sec-sub">Every routed message, scope check and gate decision, in order.</p>
+  <div class="log" id="logBox"></div>
+  <div class="toolbar"><button class="btn" onclick="clearLog()">Clear wire</button></div>
+</section>
+
+<footer>Designed &amp; Architected by <b>Krishnamurthy Kandregula</b> · Made by Claude<br>
+<span style="letter-spacing:.06em">Krishnamurthy Kandregula Innovation Lab · Agentic Era Series · 2026</span></footer>
+</div>
+
+<!-- ============ SETTINGS MODAL ============ -->
+<div class="modal" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="sheet">
+    <h3 id="setTitle">Engine Room</h3>
+    <label for="apiKey">Anthropic API key (BYOK · stays on this device)</label>
+    <input type="password" id="apiKey" placeholder="sk-ant-…" autocomplete="off">
+    <label for="liveToggle">Execution mode</label>
+    <select id="liveToggle">
+      <option value="demo">Demo — free, deterministic simulation of the full run</option>
+      <option value="live">Live — each agent reasons on its own Claude model (uses your key)</option>
+    </select>
+    <p class="note">In <b>Live mode</b> every pipeline stage makes one real API call: Opus-class agents for invention, legal and investor reasoning; Sonnet for research, product, design and code; Haiku for marketing, sales and support. Your key is stored in <b>localStorage on this device only</b> and sent directly to Anthropic — no middle server. A full 12-stage run ≈ 13 calls.</p>
+    <div class="row">
+      <button class="btn" onclick="closeSettings()">Close</button>
+      <button class="btn gold" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APPROVAL MODAL ============ -->
+<div class="modal" id="apprModal" role="dialog" aria-modal="true" aria-labelledby="apprTitle">
+  <div class="sheet">
+    <h3 id="apprTitle">⚑ Founder Authority Required</h3>
+    <div id="apprModalBody" class="note" style="white-space:pre-wrap;color:#CBB891"></div>
+    <div class="row">
+      <button class="btn no" onclick="decideGate(false)">Reject</button>
+      <button class="btn ok" onclick="decideGate(true)">Approve &amp; proceed</button>
+    </div>
+  </div>
+</div>
+<script>
+'use strict';
+/* =====================================================================
+   FOUNDERPILOT X — data model
+   ===================================================================== */
+const SCOPES = ['mission','market','product','code','legal','finance','gtm','customers'];
+
+const AGENTS = [
+ {id:'orc',    name:'Orchestrator',  icon:'✷', hue:'#D8B36A', model:'claude-opus-4-8',   tier:'OPUS',
+  role:'Routes every task, enforces scopes and gates. Never does the work — decides who does.',
+  perms:{mission:'rw',market:'r',product:'r',code:'r',legal:'r',finance:'r',gtm:'r',customers:'r'}},
+ {id:'invent', name:'Invent Agent',  icon:'✦', hue:'#C9A0F0', model:'claude-opus-4-8',   tier:'OPUS',
+  role:'Hunts unsolved pain points inside the mission domain and ranks them by severity × frequency × willingness to pay.',
+  perms:{mission:'r',market:'rw',product:'-',code:'-',legal:'-',finance:'-',gtm:'-',customers:'-'}},
+ {id:'research',name:'Research Agent',icon:'◎', hue:'#6FA8DC', model:'claude-sonnet-4-6', tier:'SONNET',
+  role:'Validates demand: market size, competitors, pricing anchors, and a kill/proceed verdict with evidence.',
+  perms:{mission:'r',market:'rw',product:'-',code:'-',legal:'-',finance:'r',gtm:'-',customers:'-'}},
+ {id:'product',name:'Product Agent', icon:'▤', hue:'#7FD0C8', model:'claude-opus-4-8',   tier:'OPUS',
+  role:'Turns the validated pain into a wedge: positioning, MVP cutline, and a PRD with measurable success criteria.',
+  perms:{mission:'r',market:'r',product:'rw',code:'-',legal:'-',finance:'-',gtm:'r',customers:'r'}},
+ {id:'design', name:'Design Agent',  icon:'◈', hue:'#F0A8C0', model:'claude-sonnet-4-6', tier:'SONNET',
+  role:'Translates the PRD into information architecture, key screens and a token system the Coding Agent can build from.',
+  perms:{mission:'r',market:'-',product:'rw',code:'r',legal:'-',finance:'-',gtm:'-',customers:'-'}},
+ {id:'code',   name:'Coding Agent',  icon:'⌘', hue:'#8FB8F0', model:'claude-sonnet-4-6', tier:'SONNET',
+  role:'Architects and builds the app; owns the repo, tests and release candidates. Ships only through the deploy gate.',
+  perms:{mission:'r',market:'-',product:'r',code:'rw',legal:'-',finance:'-',gtm:'-',customers:'-'}},
+ {id:'legal',  name:'Legal Agent',   icon:'§', hue:'#C8C2A8', model:'claude-opus-4-8',   tier:'OPUS',
+  role:'Entity choice, ToS, privacy, data residency and sector compliance. Flags risk; filings always need a human signature.',
+  perms:{mission:'r',market:'r',product:'r',code:'-',legal:'rw',finance:'r',gtm:'r',customers:'-'}},
+ {id:'finance',name:'Finance Agent', icon:'₹', hue:'#9FD08A', model:'claude-sonnet-4-6', tier:'SONNET',
+  role:'Pricing model, unit economics, runway and budget envelopes for other agents. Every rupee of spend passes the gate.',
+  perms:{mission:'r',market:'r',product:'r',code:'-',legal:'r',finance:'rw',gtm:'r',customers:'-'}},
+ {id:'mkt',    name:'Marketing Agent',icon:'✧', hue:'#F0C070', model:'claude-haiku-4-5', tier:'HAIKU',
+  role:'Brand voice, launch narrative, social calendar and ad creative. Sees a budget envelope, never the ledger.',
+  perms:{mission:'r',market:'r',product:'r',code:'-',legal:'-',finance:'-',gtm:'rw',customers:'r'}},
+ {id:'sales',  name:'Sales Agent',   icon:'⇗', hue:'#F09070', model:'claude-haiku-4-5', tier:'HAIKU',
+  role:'ICP list, outreach sequences and demo scripts. Outbound email leaves only after founder review.',
+  perms:{mission:'r',market:'r',product:'r',code:'-',legal:'-',finance:'-',gtm:'rw',customers:'rw'}},
+ {id:'hire',   name:'Hiring Agent',  icon:'⚭', hue:'#B0A8F0', model:'claude-haiku-4-5', tier:'HAIKU',
+  role:'Role scorecards, sourcing notes and interview loops for the first hires. Offers are founder-signed.',
+  perms:{mission:'r',market:'-',product:'r',code:'-',legal:'r',finance:'r',gtm:'-',customers:'-'}},
+ {id:'invest', name:'Investor Agent',icon:'◇', hue:'#E8D080', model:'claude-opus-4-8',  tier:'OPUS',
+  role:'Narrative memo, metrics room and target-investor map. Reads widely; sends nothing without the gate.',
+  perms:{mission:'r',market:'r',product:'r',code:'-',legal:'r',finance:'r',gtm:'r',customers:'r'}},
+ {id:'support',name:'Support Agent', icon:'☏', hue:'#80C8E8', model:'claude-haiku-4-5', tier:'HAIKU',
+  role:'Answers customers from the product knowledge base; escalates anything legal or financial. Walled off from both.',
+  perms:{mission:'r',market:'-',product:'r',code:'-',legal:'-',finance:'-',gtm:'-',customers:'rw'}},
+ {id:'growth', name:'Growth Agent',  icon:'∿', hue:'#A0E0A8', model:'claude-sonnet-4-6', tier:'SONNET',
+  role:'Instruments analytics, reads the feedback loop, and files ranked improvement briefs back into the product scope.',
+  perms:{mission:'r',market:'r',product:'rw',code:'r',legal:'-',finance:'-',gtm:'r',customers:'r'}},
+];
+const A = Object.fromEntries(AGENTS.map(a=>[a.id,a]));
+
+const STAGES = [
+ {n:1, id:'pain',    label:'Find the unsolved pain point',  agent:'invent',  writes:'market',   gate:null},
+ {n:2, id:'validate',label:'Validate demand',               agent:'research',writes:'market',   gate:null},
+ {n:3, id:'shape',   label:'Design the product wedge',      agent:'product', writes:'product',  gate:null},
+ {n:4, id:'prd',     label:'Write the PRD',                 agent:'product', writes:'product',  gate:null},
+ {n:5, id:'ui',      label:'Generate the UI system',        agent:'design',  writes:'product',  gate:null},
+ {n:6, id:'build',   label:'Build the app',                 agent:'code',    writes:'code',     gate:null},
+ {n:7, id:'deploy',  label:'Deploy to production',          agent:'code',    writes:'code',     gate:'Ship release candidate v0.1.0 to production. Rollback plan attached. Founder sign-off required to deploy.'},
+ {n:8, id:'analytics',label:'Register analytics',           agent:'growth',  writes:'product',  gate:null},
+ {n:9, id:'social',  label:'Create social presence',        agent:'mkt',     writes:'gtm',      gate:null},
+ {n:10,id:'ads',     label:'Launch ads',                    agent:'mkt',     writes:'gtm',      gate:'Marketing requests release of the ₹25,000 pilot ad envelope approved by Finance. No spend moves without founder approval.'},
+ {n:11,id:'support', label:'Respond to customers',          agent:'support', writes:'customers',gate:null},
+ {n:12,id:'improve', label:'Improve from feedback',         agent:'growth',  writes:'product',  gate:null},
+];
+
+const GATES = [
+ {icon:'₹', t:'Spend gate',    d:'Finance sets envelopes; releasing any money — ads, tools, contractors — pauses for the founder.'},
+ {icon:'⇪', t:'Deploy gate',   d:'The Coding Agent can build endlessly, but production releases require explicit sign-off.'},
+ {icon:'✉', t:'Outbound gate', d:'Sales sequences, investor emails and PR never leave the building autonomously.'},
+ {icon:'§', t:'Signature gate',d:'Incorporation, contracts and offers are drafted by agents, executed only by a human.'},
+ {icon:'⛨', t:'Scope wall',    d:'The Orchestrator rejects any read/write outside an agent’s matrix — logged, every time.'},
+];
+
+/* =====================================================================
+   state + persistence
+   ===================================================================== */
+const store = {
+  get k(){ return localStorage.getItem('fpx_key')||'' },
+  set k(v){ localStorage.setItem('fpx_key',v) },
+  get live(){ return localStorage.getItem('fpx_live')==='1' },
+  set live(v){ localStorage.setItem('fpx_live',v?'1':'0') },
+};
+let RUN = { active:false, mission:'', stageIx:-1, artifacts:[], pending:null, aborted:false };
+let PULSES = [];           // canvas message pulses
+let AGENT_STATE = {};      // id -> idle|busy|done|gate
+AGENTS.forEach(a=>AGENT_STATE[a.id]='idle');
+
+/* =====================================================================
+   PWA plumbing — canvas icon + blob service worker
+   ===================================================================== */
+(function pwa(){
+  try{
+    const c=document.createElement('canvas'); c.width=c.height=512; const x=c.getContext('2d');
+    const g=x.createLinearGradient(0,0,512,512); g.addColorStop(0,'#0B0D14'); g.addColorStop(1,'#1A1508');
+    x.fillStyle=g; x.fillRect(0,0,512,512);
+    x.strokeStyle='#D8B36A'; x.lineWidth=6; x.beginPath(); x.arc(256,256,150,0,7); x.stroke();
+    x.fillStyle='#D8B36A'; x.beginPath(); x.arc(256,256,42,0,7); x.fill();
+    for(let i=0;i<6;i++){const a=i*Math.PI/3-Math.PI/2;
+      x.fillStyle='#EFD9A7'; x.beginPath(); x.arc(256+150*Math.cos(a),256+150*Math.sin(a),20,0,7); x.fill();}
+    x.fillStyle='#07080C'; x.font='700 118px serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText('X',256,262);
+    const icon=c.toDataURL('image/png');
+    const man={name:'FounderPilot X',short_name:'FPX',start_url:'.',display:'standalone',
+      background_color:'#07080C',theme_color:'#07080C',icons:[{src:icon,sizes:'512x512',type:'image/png'}]};
+    const mb=new Blob([JSON.stringify(man)],{type:'application/json'});
+    const l=document.createElement('link'); l.rel='manifest'; l.href=URL.createObjectURL(mb); document.head.appendChild(l);
+    const ai=document.createElement('link'); ai.rel='apple-touch-icon'; ai.href=icon; document.head.appendChild(ai);
+    if('serviceWorker' in navigator){
+      const sw=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('fetch',()=>{});`;
+      navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});
+    }
+  }catch(e){}
+})();
+
+/* =====================================================================
+   tabs + rendering
+   ===================================================================== */
+function showTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='panel-'+t));
+  if(t==='memory') renderMemory();
+}
+function setMission(m){ const i=document.getElementById('missionInput'); i.value=m; i.focus(); }
+
+function renderAgents(){
+  const g=document.getElementById('agentGrid'); g.innerHTML='';
+  AGENTS.forEach(a=>{
+    const gated = ['code','finance','mkt','sales','legal','invest','hire'].includes(a.id);
+    const el=document.createElement('div'); el.className='acard '+(AGENT_STATE[a.id]!=='idle'?AGENT_STATE[a.id]:'');
+    el.id='ac-'+a.id;
+    el.innerHTML=`<span class="alight"></span>
+      <div class="top"><div class="sigil" style="color:${a.hue};border-color:${a.hue}44">${a.icon}</div>
+      <div><h3>${a.name}</h3></div></div>
+      <div class="role">${a.role}</div>
+      <div class="chips"><span class="chip model">${a.tier} · ${a.model.replace('claude-','')}</span>
+      ${gated?'<span class="chip gate">⚑ gated actions</span>':''}
+      <span class="chip">${Object.values(a.perms).filter(p=>p==='rw').length} write scope${Object.values(a.perms).filter(p=>p==='rw').length===1?'':'s'}</span></div>`;
+    g.appendChild(el);
+  });
+}
+function renderMatrix(){
+  const t=document.getElementById('matrix');
+  let h='<thead><tr><th>Agent</th>'+SCOPES.map(s=>`<th>${s}</th>`).join('')+'</tr></thead><tbody>';
+  AGENTS.forEach(a=>{
+    h+=`<tr><td>${a.icon} ${a.name}</td>`+SCOPES.map(s=>{
+      const p=a.perms[s]||'-';
+      return `<td><span class="perm ${p==='rw'?'rw':p==='r'?'r':'no'}">${p==='rw'?'RW':p==='r'?'R':'—'}</span></td>`;
+    }).join('')+'</tr>';
+  });
+  t.innerHTML=h+'</tbody>';
+}
+function renderGates(){
+  document.getElementById('gateList').innerHTML = GATES.map(g=>
+    `<div class="gate-card"><h4><span style="color:var(--warn)">${g.icon}</span> ${g.t}</h4><p>${g.d}</p></div>`).join('');
+}
+function renderPipeline(){
+  const p=document.getElementById('pipeline'); p.innerHTML='';
+  STAGES.forEach((s,i)=>{
+    const ag=A[s.agent];
+    const st = i<RUN.stageIx?'done': i===RUN.stageIx?(RUN.pending?'gate':'run'):'idle';
+    const el=document.createElement('div'); el.className='step '+(st!=='idle'?st:''); el.id='step-'+s.id;
+    el.innerHTML=`<div class="no">${String(s.n).padStart(2,'0')}</div>
+      <div><div class="lbl">${s.gate?'⚑ ':''}${s.label}</div>
+      <div class="who"><span style="color:${ag.hue}">${ag.icon}</span> ${ag.name} · ${ag.tier} → writes <b>${s.writes}</b></div></div>
+      <div class="st">${st==='done'?'✓ done':st==='run'?'● working':st==='gate'?'⚑ awaiting founder':'—'}</div>`;
+    p.appendChild(el);
+  });
+}
+function renderMemory(){
+  const g=document.getElementById('memGrid');
+  if(!RUN.artifacts.length){
+    g.innerHTML=`<div class="empty"><b>MEMORY EMPTY</b>Launch a mission from the Command deck — every artifact the agents produce lands here, scoped and attributed.</div>`;
+    return;
+  }
+  g.innerHTML='';
+  [...RUN.artifacts].reverse().forEach(art=>{
+    const ag=A[art.agent];
+    const d=document.createElement('details'); d.className='art'; if(art.open)d.open=true;
+    d.innerHTML=`<summary><span class="scope-tag" style="color:${ag.hue};border-color:${ag.hue}55">${art.scope}</span>
+      <span class="a-title">${art.title}</span><span class="a-by">${ag.icon} ${ag.name}</span></summary>
+      <div class="body">${art.body}</div>`;
+    g.appendChild(d);
+  });
+}
+function setAgent(id,st){ AGENT_STATE[id]=st; const el=document.getElementById('ac-'+id);
+  if(el){el.classList.remove('busy','done'); if(st==='busy')el.classList.add('busy'); if(st==='done')el.classList.add('done');} }
+
+/* =====================================================================
+   log
+   ===================================================================== */
+function log(kind, who, msg){
+  const box=document.getElementById('logBox');
+  const t=new Date().toLocaleTimeString('en-IN',{hour12:false});
+  const line=document.createElement('div');
+  line.innerHTML=`<span class="t">${t}</span> <span class="${kind}">[${who}]</span> <span class="msg-line">${msg}</span>`;
+  box.appendChild(line); box.scrollTop=box.scrollHeight;
+}
+function clearLog(){ document.getElementById('logBox').innerHTML=''; }
+
+/* =====================================================================
+   constellation canvas — the signature
+   ===================================================================== */
+const CV=document.getElementById('orbit'), CX=CV.getContext('2d');
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function nodePos(){
+  const W=CV.width,H=CV.height,cx=W/2,cy=H/2;
+  const R=Math.min(W,H)*0.385;
+  const pos={orc:{x:cx,y:cy}};
+  const ring=AGENTS.filter(a=>a.id!=='orc');
+  ring.forEach((a,i)=>{ const th=-Math.PI/2 + i*2*Math.PI/ring.length;
+    pos[a.id]={x:cx+R*Math.cos(th), y:cy+R*Math.sin(th)}; });
+  return pos;
+}
+function sendPulse(from,to,color){
+  if(REDUCED){ return; }
+  PULSES.push({from,to,t:0,color:color||'#D8B36A'});
+}
+function drawOrbit(){
+  const P=nodePos(), W=CV.width, H=CV.height;
+  CX.clearRect(0,0,W,H);
+  // ambient ring
+  CX.strokeStyle='rgba(216,179,106,.10)'; CX.lineWidth=1;
+  CX.beginPath(); CX.arc(W/2,H/2,Math.min(W,H)*0.385,0,7); CX.stroke();
+  // spokes
+  AGENTS.forEach(a=>{ if(a.id==='orc')return;
+    const p=P[a.id],o=P.orc;
+    CX.strokeStyle = AGENT_STATE[a.id]==='busy' ? 'rgba(111,168,220,.45)' : 'rgba(46,53,71,.7)';
+    CX.lineWidth = AGENT_STATE[a.id]==='busy'?1.6:1;
+    CX.beginPath(); CX.moveTo(o.x,o.y); CX.lineTo(p.x,p.y); CX.stroke();
+  });
+  // pulses
+  PULSES=PULSES.filter(pl=>pl.t<=1);
+  PULSES.forEach(pl=>{
+    const f=P[pl.from],g=P[pl.to]; if(!f||!g)return;
+    const x=f.x+(g.x-f.x)*pl.t, y=f.y+(g.y-f.y)*pl.t;
+    CX.fillStyle=pl.color; CX.shadowColor=pl.color; CX.shadowBlur=12;
+    CX.beginPath(); CX.arc(x,y,4.5,0,7); CX.fill(); CX.shadowBlur=0;
+    pl.t+=0.022;
+  });
+  // nodes
+  const time=performance.now()/1000;
+  AGENTS.forEach(a=>{
+    const p=P[a.id], st=AGENT_STATE[a.id], big=a.id==='orc';
+    const r= big?34:24;
+    // halo
+    if(st==='busy'||st==='gate'){
+      const hc = st==='gate' ? '224,166,62' : '111,168,220';
+      const k = REDUCED?0.5:(Math.sin(time*3)+1)/2;
+      CX.strokeStyle=`rgba(${hc},${0.25+0.35*k})`; CX.lineWidth=2;
+      CX.beginPath(); CX.arc(p.x,p.y,r+6+3*k,0,7); CX.stroke();
+    }
+    CX.fillStyle= big?'#181405':'#10131B';
+    CX.strokeStyle = st==='done'?'#5FBF8A': st==='busy'?'#6FA8DC': st==='gate'?'#E0A63E': big?'#D8B36A':'#2E3547';
+    CX.lineWidth= big?2.2:1.6;
+    CX.beginPath(); CX.arc(p.x,p.y,r,0,7); CX.fill(); CX.stroke();
+    CX.fillStyle= big?'#EFD9A7':a.hue;
+    CX.font=(big?'26px':'19px')+' "DM Sans"'; CX.textAlign='center'; CX.textBaseline='middle';
+    CX.fillText(a.icon,p.x,p.y+1);
+    CX.fillStyle= st==='idle'?'#8B93A5':'#E9E5DA';
+    CX.font='500 12px "DM Mono"';
+    const ly = p.y + (p.y>H/2? r+18 : -(r+13));
+    CX.fillText(big?'ORCHESTRATOR':a.name.replace(' Agent',''), p.x, ly);
+  });
+  requestAnimationFrame(drawOrbit);
+}
+requestAnimationFrame(drawOrbit);
+function orbitStatus(s){ document.getElementById('orbitStatus').textContent=s; }
+function setMissionStrip(m){
+  const strip=document.getElementById('missionStrip'), txt=document.getElementById('missionText');
+  if(m){ strip.classList.add('live'); txt.textContent='“'+m+'”'; }
+  else { strip.classList.remove('live'); txt.textContent='No active mission — give the company one command above.'; }
+}
+
+/* =====================================================================
+   demo brain — deterministic, mission-aware artifacts (free layer)
+   ===================================================================== */
+function domainOf(m){
+  const s=m.toLowerCase();
+  const strip=s.replace(/build (a|an)?|create (a|an)?|make (a|an)?|saas|app|tool|platform|for|the/g,' ').trim();
+  return strip.split(/\s+/).filter(Boolean).slice(0,3).join(' ')||'the target market';
+}
+function demoArtifact(stage,mission){
+  const d=domainOf(mission);
+  const M={
+  pain:{t:`Pain map — ${d}`,b:
+`Scanned the working day of ${d} for moments where money, time or trust leaks.
+
+<strong>Ranked pain points</strong>
+P1 · No-shows and last-minute cancellations — revenue lost with zero recovery workflow (severity 9, frequency daily)
+P2 · Manual follow-ups after a visit/purchase — done from memory, done badly (severity 7)
+P3 · Records scattered across WhatsApp, paper and one ageing desktop tool (severity 6)
+
+<strong>Selected wedge → P1.</strong> It is felt weekly, priced easily (recovered revenue is measurable), and reachable without integrations on day one. Passing to Research for a kill/proceed verdict.`},
+  validate:{t:`Demand verdict — proceed`,b:
+`<strong>Verdict: PROCEED</strong> (confidence 7.5/10)
+
+Market: ${d} in India — large fragmented long tail; incumbents serve the top decile with heavy suites.
+Evidence: forums and association groups show recurring unprompted complaints about P1; three adjacent tools charge ₹1,500–4,000/mo without solving recovery, only reminders.
+Pricing anchor: value-priced against recovered revenue → ₹999/mo entry is defensible.
+Kill conditions logged: if <25% of 20 discovery calls confirm weekly P1 pain, revert to P2.`},
+  shape:{t:`Product wedge & positioning`,b:
+`<strong>One-liner:</strong> "The slot that fills itself."
+When a cancellation hits, the product instantly offers the slot to a ranked standby list and confirms a replacement — no calls, no front-desk heroics.
+
+MVP cutline (2 weeks): booking calendar ingest → cancellation trigger → standby waitlist → WhatsApp confirmation → recovered-revenue counter.
+Deliberately cut: payments, multi-branch, analytics suite. The counter IS the demo, the pitch and the retention hook.`},
+  prd:{t:`PRD v1.0 — SlotSaver`,b:
+`<strong>Problem</strong> Cancellations create dead slots; recovery is manual and usually skipped.
+<strong>Users</strong> Owner (buys), front desk (uses), customer (experiences magic).
+<strong>Success metric</strong> ≥30% of cancelled slots refilled within 60 min, visible on a live counter.
+
+<strong>Core stories</strong>
+1. As front desk, when a booking is cancelled the standby list is pinged automatically in ranked order.
+2. As a standby customer, I confirm with one tap; the slot locks and everyone else is stood down.
+3. As the owner, I see ₹ recovered this month on the home screen.
+
+<strong>Non-goals v1</strong> payments, EHR/ERP integration, iOS native.
+<strong>Guardrail</strong> customer messaging templates require one-time founder approval (Outbound gate).`},
+  ui:{t:`UI system & key screens`,b:
+`Tokens: ink #0B0D12 · surface #141824 · accent teal #2FBFAE · alert amber · DM Sans / DM Mono.
+IA: three screens only — <strong>Today</strong> (timeline with live refill states), <strong>Standby</strong> (ranked list, drag to reorder), <strong>Recovered</strong> (the money counter, month view).
+
+Signature element: the cancelled slot doesn't go grey — it pulses amber, then flips teal with the replacement's name sliding in. The whole value prop in one animation. Handed to Coding as component specs.`},
+  build:{t:`Build report — RC v0.1.0`,b:
+`Stack: single-file PWA · vanilla JS · localStorage core, sync-layer stubbed · WhatsApp deep-links for confirmations (no API dependency at MVP).
+34 components, 3 screens, offline-first.
+node --check ✓ · lighthouse PWA ✓ · empty/error states written in product voice.
+Release candidate tagged <strong>v0.1.0</strong>. Requesting the Deploy gate — rollback = static previous build, 30s.`},
+  deploy:{t:`Deployment record`,b:
+`<strong>Founder approved.</strong> v0.1.0 shipped to production (simulated target: vercel · slotsaver.app).
+Health checks green · rollback armed · release notes posted to company memory. Coding Agent returns to backlog.`},
+  analytics:{t:`Analytics registered`,b:
+`Instrumented (privacy-first, no third-party trackers at MVP):
+· slot_cancelled → refill_offered → refill_confirmed funnel
+· time-to-refill (median target <60 min)
+· weekly recovered-₹ per account
+North star: <strong>recovered revenue per account per month</strong>. Dashboards wired to Growth's scope; raw customer data stays inside the customers scope wall.`},
+  social:{t:`Launch narrative & social calendar`,b:
+`Voice: calm, specific, zero hustle-bro.
+Hero line: <strong>"Your 4pm just cancelled. Your 4pm is already refilled."</strong>
+
+Week 1 calendar: founder story (why dead slots are a silent tax) → 20-second screen recording of the amber→teal flip → recovered-₹ screenshot from pilot → FAQ thread. Assets drafted to gtm scope; nothing posts without the Outbound gate.`},
+  ads:{t:`Pilot ad plan — envelope released`,b:
+`<strong>Founder approved ₹25,000 pilot envelope.</strong>
+Split: 60% search (high-intent "reduce no-shows" queries) · 40% Meta lookalikes on pilot customers.
+Kill rule (Finance-enforced): pause any ad set with CAC > 2× first-month price after ₹5,000 spend. Daily spend report writes to gtm; ledger stays with Finance.`},
+  support:{t:`Support loop — first 48h`,b:
+`11 conversations handled from the product KB. Median first response 40s.
+Themes: 6× "how does the standby list rank people" (answered; KB updated) · 3× onboarding on calendar import · 1× refund question → <strong>escalated to founder</strong> (finance scope wall, working as designed) · 1× feature ask: multi-staff calendars.
+CSAT 4.7/5. Feature ask filed to Growth.`},
+  improve:{t:`Improvement brief #1 → product scope`,b:
+`Signal review (analytics + support + social replies):
+1. <strong>Multi-staff calendars</strong> — asked 4× in 48h, blocks bigger accounts → promoted to next sprint.
+2. Standby ranking transparency — small UI copy fix, ship in patch.
+3. Time-to-refill median 71 min vs 60 target — offer window logic tuned, A/B queued.
+
+Loop closed: feedback → ranked brief → PRD delta written back to product scope. The company now improves itself on schedule — with every gate still in place.`}
+  };
+  return M[stage.id];
+}
+
+/* =====================================================================
+   live brain — one real Claude call per stage (BYOK layer)
+   ===================================================================== */
+function memoryDigest(){
+  return RUN.artifacts.map(a=>`[${a.scope}] ${a.title} (by ${A[a.agent].name}):\n${a.body.replace(/<[^>]+>/g,'')}`).join('\n\n').slice(-6000);
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');}
+async function liveArtifact(stage,mission){
+  const ag=A[stage.agent];
+  const sys=`You are the ${ag.name} of FounderPilot X, an autonomous company builder. Charter: ${ag.role}
+You may ONLY write to the "${stage.writes}" memory scope. You read the shared memory digest provided.
+Mission: "${mission}". Current stage ${stage.n}/12: ${stage.label}.
+Respond with a crisp, concrete artifact (180-260 words max). Use **bold** for key lines. Be specific to the mission domain — real numbers, real names of things, no fluff. If this stage involves money, deployment or outbound messages, end by formally requesting founder approval.`;
+  const body={model:ag.model,max_tokens:700,system:sys,
+    messages:[{role:'user',content:'Shared company memory so far:\n'+(memoryDigest()||'(empty — you are first)')+'\n\nProduce your stage artifact now.'}]};
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':store.k,
+      'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify(body)});
+  if(!r.ok){const e=await r.text();throw new Error('API '+r.status+': '+e.slice(0,140));}
+  const j=await r.json();
+  const txt=(j.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\n');
+  return {t:`${stage.label} — live`, b:esc(txt)};
+}
+
+/* =====================================================================
+   run engine
+   ===================================================================== */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function launchMission(){
+  const m=document.getElementById('missionInput').value.trim();
+  if(!m){document.getElementById('missionInput').focus();return;}
+  if(RUN.active)return;
+  RUN={active:true,mission:m,stageIx:-1,artifacts:[],pending:null,aborted:false};
+  AGENTS.forEach(a=>setAgent(a.id,'idle'));
+  document.getElementById('launchBtn').disabled=true;
+  clearLog();
+  log('sys','ORCHESTRATOR',`Mission received: “${m}”. Waking the thirteen. Mode: ${store.live?'LIVE':'DEMO'}.`);
+  orbitStatus('mission live — '+m);
+  setMissionStrip(m);
+  AGENT_STATE.orc='busy';
+  await runFrom(0);
+}
+async function runFrom(ix){
+  for(let i=ix;i<STAGES.length;i++){
+    if(RUN.aborted)break;
+    RUN.stageIx=i; const s=STAGES[i], ag=A[s.agent];
+    renderPipeline();
+    // orchestrator routes
+    log('sys','ORCHESTRATOR',`Stage ${s.n} → routing to ${ag.name} (${ag.model}). Scope check: write:${s.writes} → ${ag.perms[s.writes]==='rw'?'GRANTED':'DENIED'}.`);
+    sendPulse('orc',s.agent,'#D8B36A');
+    setAgent(s.agent,'busy'); AGENT_STATE[s.agent]='busy';
+    orbitStatus(`stage ${s.n}/12 · ${ag.name} working — ${s.label.toLowerCase()}`);
+    await sleep(900);
+    // produce artifact
+    let art;
+    if(store.live && store.k){
+      try{ log('ag',ag.name,'Reasoning on '+ag.model+' …'); art=await liveArtifact(s,RUN.mission); }
+      catch(e){ log('err',ag.name,e.message+' — falling back to demo brain for this stage.'); art=demoArtifact(s,RUN.mission); }
+    } else {
+      await sleep(1300+Math.random()*900);
+      art=demoArtifact(s,RUN.mission);
+    }
+    // gate?
+    if(s.gate){
+      AGENT_STATE[s.agent]='gate'; renderPipeline();
+      RUN.pending={stage:s,art,ix:i};
+      updateApprovals();
+      log('warn',ag.name,'⚑ Gate raised — founder approval required. Pipeline holding.');
+      sendPulse(s.agent,'orc','#E0A63E');
+      orbitStatus(`⚑ holding at stage ${s.n} — founder approval required`);
+      openApprModal(s);
+      return; // resumes via decideGate()
+    }
+    commitArtifact(s,art);
+  }
+  if(!RUN.pending) finishRun();
+}
+function commitArtifact(s,art){
+  const ag=A[s.agent];
+  RUN.artifacts.push({scope:s.writes,agent:s.agent,title:art.t,body:art.b,open:false});
+  sendPulse(s.agent,'orc','#5FBF8A');
+  setAgent(s.agent,'done'); AGENT_STATE[s.agent]='done';
+  log('ok',ag.name,`Artifact committed → [${s.writes}] “${art.t}”.`);
+  renderPipeline();
+}
+function finishRun(){
+  RUN.active=false; RUN.stageIx=STAGES.length; AGENT_STATE.orc='done';
+  renderPipeline(); updateApprovals();
+  document.getElementById('launchBtn').disabled=false;
+  orbitStatus('run complete — company memory populated. The Growth loop keeps it improving.');
+  log('sys','ORCHESTRATOR','Run complete. 12 stages, '+RUN.artifacts.length+' artifacts, every gate honoured. View Memory for the company file.');
+}
+function resetRun(){
+  RUN={active:false,mission:'',stageIx:-1,artifacts:[],pending:null,aborted:true};
+  AGENTS.forEach(a=>{AGENT_STATE[a.id]='idle';setAgent(a.id,'idle');});
+  PULSES=[]; renderPipeline(); updateApprovals(); renderMemory(); setMissionStrip('');
+  document.getElementById('launchBtn').disabled=false;
+  orbitStatus('system idle — awaiting mission');
+  log('sys','ORCHESTRATOR','Run reset by founder.');
+}
+
+/* =====================================================================
+   approvals — the concerned authority
+   ===================================================================== */
+function updateApprovals(){
+  const badge=document.getElementById('apprBadge');
+  badge.textContent = RUN.pending?'1':'';
+  const list=document.getElementById('apprList');
+  if(!RUN.pending){
+    list.innerHTML='<div class="empty"><b>QUEUE CLEAR</b>No agent is asking to spend, ship, sign or send. When one does, it stops here.</div>';
+    return;
+  }
+  const s=RUN.pending.stage, ag=A[s.agent];
+  list.innerHTML=`<div class="appr"><h4>⚑ Stage ${s.n} · ${s.label} — requested by ${ag.icon} ${ag.name}</h4>
+    <div class="req">${s.gate}</div>
+    <div class="row"><button class="btn no" onclick="decideGate(false)">Reject</button>
+    <button class="btn ok" onclick="decideGate(true)">Approve &amp; proceed</button></div></div>`;
+}
+function openApprModal(s){
+  document.getElementById('apprModalBody').textContent=`Stage ${s.n} · ${s.label}\nRequested by: ${A[s.agent].name}\n\n${s.gate}`;
+  document.getElementById('apprModal').classList.add('on');
+  updateApprovals();
+}
+async function decideGate(yes){
+  document.getElementById('apprModal').classList.remove('on');
+  if(!RUN.pending)return;
+  const {stage:s,art,ix}=RUN.pending; RUN.pending=null; updateApprovals();
+  if(yes){
+    log('ok','FOUNDER','Approved: '+s.label+'. Gate released.');
+    sendPulse('orc',s.agent,'#5FBF8A');
+    commitArtifact(s,art);
+    await runFrom(ix+1);
+  } else {
+    log('err','FOUNDER','Rejected: '+s.label+'. '+A[s.agent].name+' stood down; pipeline halted safely.');
+    setAgent(s.agent,'idle'); AGENT_STATE[s.agent]='idle';
+    RUN.active=false; document.getElementById('launchBtn').disabled=false;
+    renderPipeline(); orbitStatus('halted by founder at stage '+s.n+' — nothing was spent, shipped or sent');
+  }
+}
+
+/* =====================================================================
+   settings
+   ===================================================================== */
+function openSettings(){ document.getElementById('apiKey').value=store.k;
+  document.getElementById('liveToggle').value=store.live?'live':'demo';
+  document.getElementById('settingsModal').classList.add('on'); }
+function closeSettings(){ document.getElementById('settingsModal').classList.remove('on'); }
+function saveSettings(){
+  store.k=document.getElementById('apiKey').value.trim();
+  store.live = document.getElementById('liveToggle').value==='live' && !!store.k;
+  refreshMode(); closeSettings();
+  log('sys','SYSTEM','Mode set to '+(store.live?'LIVE — real per-agent reasoning enabled.':'DEMO — free deterministic simulation.'));
+}
+function refreshMode(){
+  const p=document.getElementById('modePill');
+  p.classList.toggle('live',store.live);
+  document.getElementById('modeLabel').textContent = store.live?'LIVE MODE · PER-AGENT AI':'DEMO MODE · TAP FOR LIVE';
+}
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m&&m.id==='settingsModal')closeSettings();}));
+
+/* =====================================================================
+   init
+   ===================================================================== */
+renderAgents(); renderMatrix(); renderGates(); renderPipeline(); renderMemory(); updateApprovals(); refreshMode();
+log('sys','SYSTEM','FounderPilot X online. 13 agents chartered. 5 hard gates armed. Awaiting founder command.');
+</script>
+</body>
+</html>
