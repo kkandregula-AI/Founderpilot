@@ -711,87 +711,231 @@ function setMissionStrip(m){
 }
 
 /* =====================================================================
-   demo brain — deterministic, mission-aware artifacts (free layer)
+   demo brain — scenario packs, so every domain gets its own story
    ===================================================================== */
 function domainOf(m){
   const s=m.toLowerCase();
-  const strip=s.replace(/build (a|an)?|create (a|an)?|make (a|an)?|saas|app|tool|platform|for|the/g,' ').trim();
+  const strip=s.replace(/build (a|an)?|create (a|an)?|make (a|an)?|saas|app|tool|platform|marketplace|for|the/g,' ').trim();
   return strip.split(/\s+/).filter(Boolean).slice(0,3).join(' ')||'the target market';
 }
+const PACKS=[
+{re:/dent|clinic|doctor|patient|salon|spa|appoint/i, name:'SlotSaver',
+ users:'Clinic owner (buys), front desk (uses), patient (experiences magic)',
+ p1:'No-shows and last-minute cancellations — revenue lost with zero recovery workflow (severity 9, daily)',
+ p2:'Manual post-visit follow-ups — done from memory, done badly (severity 7)',
+ p3:'Records scattered across WhatsApp, paper and one ageing desktop tool (severity 6)',
+ wedge:'“The slot that fills itself.” A cancellation instantly offers the slot to a ranked standby list and confirms a replacement — no calls, no front-desk heroics.',
+ mvp:'calendar ingest → cancellation trigger → standby waitlist → WhatsApp confirmation → recovered-revenue counter',
+ cut:'payments, multi-branch, analytics suite', hook:'The recovered-₹ counter IS the demo, the pitch and the retention hook.',
+ problem:'Cancellations create dead slots; recovery is manual and usually skipped.',
+ stories:['As front desk, when a booking is cancelled the standby list is pinged automatically in ranked order.',
+ 'As a standby patient, I confirm with one tap; the slot locks and everyone else is stood down.',
+ 'As the owner, I see ₹ recovered this month on the home screen.'],
+ metric:'≥30% of cancelled slots refilled within 60 min, on a live counter',
+ screens:'Today (timeline with live refill states) · Standby (ranked list, drag to reorder) · Recovered (the money counter)',
+ signature:'A cancelled slot pulses amber, then flips teal with the replacement’s name sliding in — the whole value prop in one animation.',
+ funnel:'slot_cancelled → refill_offered → refill_confirmed · time-to-refill median target <60 min',
+ hero:'“Your 4pm just cancelled. Your 4pm is already refilled.”',
+ market:'clinics in India — a large fragmented long tail; incumbents serve the top decile with heavy suites',
+ evidence:'association groups show recurring unprompted complaints about P1; three adjacent tools charge ₹1,500–4,000/mo for reminders, not recovery',
+ price:'value-priced against recovered revenue → ₹999/mo entry is defensible',
+ kill:'if <25% of 20 discovery calls confirm weekly P1 pain, revert to P2',
+ adTargets:'60% search on high-intent “reduce no-shows” queries · 40% Meta lookalikes on pilot clinics',
+ supportThemes:'6× “how does the standby list rank people” (KB updated) · 3× calendar import onboarding · 1× refund question → escalated to founder (finance wall)',
+ featureAsk:'multi-staff calendars',
+ improvements:['<strong>Multi-staff calendars</strong> — asked 4× in 48h, blocks bigger clinics → promoted to next sprint',
+ 'Standby ranking transparency — small UI copy fix, ship in patch',
+ 'Time-to-refill median 71 min vs 60 target — offer window logic tuned, A/B queued'],
+ counterLabel:'Revenue recovered this month', prefix:'₹', bumpBtn:'Simulate a recovered slot (+₹750)', bumpAmt:750, listLabel:'Join the standby list'},
+
+{re:/hackathon|judg|jury|scor|fest|competition/i, name:'JudgeDeck',
+ users:'Organiser (buys), judges (score on phones), participants (feel the fairness)',
+ p1:'Score aggregation chaos — sheets, paper and WhatsApp merged at 11pm by one exhausted volunteer (severity 9, every event)',
+ p2:'Judge calibration — one harsh judge silently sinks a great team; nothing normalises scores (severity 8)',
+ p3:'Results delay at the closing ceremony — the whole room waits while formulas are debugged (severity 7)',
+ wedge:'“Scores that reconcile themselves.” Judges score on their phones; the leaderboard normalises, flags conflicts, and is ceremony-ready the moment the last score lands.',
+ mvp:'rubric setup → judge phone scoring → live normalisation (z-score per judge) → conflict flags → instant leaderboard export',
+ cut:'registration, submission hosting, certificates', hook:'“Last score → final leaderboard in seconds” IS the demo.',
+ problem:'Judging data is scattered and un-normalised; finals night runs on volunteer heroics.',
+ stories:['As an organiser, I define the rubric once and every judge scores the same way.',
+ 'As a judge, I score each team on my phone in under a minute, tolerant of patchy venue Wi-Fi.',
+ 'As an organiser, when the last score lands, the normalised leaderboard is ready to project.'],
+ metric:'time from last score submitted to final leaderboard <5 minutes',
+ screens:'Rubric (criteria & weights) · Score (judge phone flow) · Leaderboard (normalised, projector mode)',
+ signature:'When the final score lands, ranks cascade into place under a gold sweep — the ceremony moment, on screen.',
+ funnel:'score_submitted → all_scores_in → leaderboard_final · judge completion rate per round',
+ hero:'“The winners were ready before the samosas were.”',
+ market:'hackathons & college fests across India — thousands yearly, run by rotating volunteer teams with zero tooling budget',
+ evidence:'organiser forums repeatedly beg for judging sheet templates; event suites price for corporates, not fests',
+ price:'per-event pricing → ₹1,499/event, cheap against one saved volunteer-night',
+ kill:'if organisers won’t pre-pay per event in 10 discovery calls, pivot to sponsor-paid',
+ adTargets:'70% search on “hackathon judging sheet template” · 30% organiser communities & fest circuits',
+ supportThemes:'5× rubric weight edits mid-event · 3× judge login on shared phones · 1× score dispute → escalated to founder',
+ featureAsk:'multi-track events with separate rubrics',
+ improvements:['<strong>Multi-track rubrics</strong> — asked 4× by fest organisers → promoted to next sprint',
+ 'Judge progress nudges — organisers ping laggards in one tap',
+ 'Projector-mode contrast fixed for bright auditoriums — ship in patch'],
+ counterLabel:'Scores reconciled tonight', prefix:'', bumpBtn:'Simulate a judge submission (+1)', bumpAmt:1, listLabel:'Add a team to the board'},
+
+{re:/kirana|khata|credit|grocer|udhaar|shop/i, name:'KhataFlow',
+ users:'Store owner (buys & uses), regular customers (repay), suppliers (eventually see history)',
+ p1:'Udhaar tracked in a paper khata — balances disputed, pages lost, memory does the accounting (severity 9, daily)',
+ p2:'Collection follow-up is socially awkward — reminders get skipped and the cash cycle stretches (severity 8)',
+ p3:'No purchase history to negotiate credit terms with suppliers (severity 6)',
+ wedge:'“The khata that reminds politely.” A digital udhaar ledger where WhatsApp reminders go out in the store’s own voice — relationships intact, cash cycle shorter.',
+ mvp:'customer khata → 5-second entry at the counter → auto WhatsApp reminder schedule → collection dashboard',
+ cut:'inventory, billing/GST, supplier payments', hook:'The recovered-udhaar counter IS the pitch.',
+ problem:'Informal credit is invisible, disputed, and collected late — a pure working-capital leak.',
+ stories:['As the owner, I record udhaar in 5 seconds while handing over the bag.',
+ 'As a customer, I get a polite reminder with my exact item history — nothing to dispute.',
+ 'As the owner, I open “Today” and see exactly who to nudge, ranked by amount and age.'],
+ metric:'overdue udhaar recovered per store per month',
+ screens:'Khata (customer ledgers) · Today (who to nudge, ranked) · Recovered (the monthly counter)',
+ signature:'Marking a repayment sweeps the entry green with a soft bell — the daily satisfaction loop.',
+ funnel:'entry_created → reminder_sent → repayment_marked · days-outstanding trend',
+ hero:'“Udhaar likhna easy. Wapas aana bhi.”',
+ market:'12M+ kirana stores; khata apps proved demand at scale, but trust and vernacular voice remain open flanks',
+ evidence:'store owners repeatedly say existing reminders feel rude or robotic; churn follows embarrassment, not features',
+ price:'freemium ledger; ₹199/mo for reminder automation',
+ kill:'if pilot stores won’t enable auto-reminders (tone anxiety), revert to one-tap manual send with templates',
+ adTargets:'70% vernacular Meta creatives · 30% WhatsApp Business directory & distributor partnerships',
+ supportThemes:'6× reminder tone & timing edits · 3× Telugu/Hindi toggle · 1× data export request → escalated to founder',
+ featureAsk:'voice entry in Telugu',
+ improvements:['<strong>Voice entry (Telugu/Hindi)</strong> — top ask from counters with wet hands → next sprint',
+ 'Festival-aware reminder templates — tone presets per season',
+ 'Ageing buckets (7/30/60 days) on the Today screen'],
+ counterLabel:'Udhaar recovered this month', prefix:'₹', bumpBtn:'Simulate a repayment (+₹500)', bumpAmt:500, listLabel:'Add a khata customer'},
+
+{re:/wedding|marriage|vendor|muhurtam|vivah|event/i, name:'MuhurtamBoard',
+ users:'Families (book), vendors (get locked dates), both (get receipts)',
+ p1:'Vendor discovery runs on word of mouth — quality is luck, verification is a phone chain (severity 8)',
+ p2:'Double-booking on peak muhurtam dates — vendors overcommit, families scramble at the worst moment (severity 9, seasonal)',
+ p3:'Advance payments on pure trust — no recourse, no paper (severity 7)',
+ wedge:'“Book the date, not the doubt.” Verified vendor calendars locked to muhurtam dates, with advances tracked as milestone receipts.',
+ mvp:'vendor profiles → muhurtam-date calendar locks → booking request → milestone advance receipts',
+ cut:'payment processing (receipts only at MVP), reviews, decor marketplace', hook:'The gold date-lock stamping both calendars IS the demo.',
+ problem:'Peak-date conflicts and undocumented advances turn the happiest purchase into the riskiest one.',
+ stories:['As a family, I shortlist verified vendors who are actually free on my muhurtam date.',
+ 'As a vendor, my calendar locks the date on confirmation — double-booking becomes impossible.',
+ 'As both parties, every advance milestone leaves a receipt trail.'],
+ metric:'confirmed, conflict-free bookings per vendor per season',
+ screens:'Vendors (verified profiles) · Dates (muhurtam calendar) · Bookings (milestones & receipts)',
+ signature:'Confirming a booking stamps the date with a gold seal on both calendars simultaneously.',
+ funnel:'profile_view → booking_request → date_locked · conflicts-averted count',
+ hero:'“Your muhurtam. Their calendar. One lock.”',
+ market:'the Telugu wedding economy — high-value, fiercely seasonal, trust-driven; aggregators list vendors but never solve date conflicts',
+ evidence:'families still cross-check dates by phone chains; vendor no-show stories are community lore',
+ price:'vendor-side ₹1,999/season + featured placement',
+ kill:'if vendors resist calendar transparency in 15 interviews, flip to family-side concierge model',
+ adTargets:'60% community pages & function-hall partnerships · 40% search on “<city> wedding <vendor type>”',
+ supportThemes:'4× vendor verification documents · 3× date-change requests · 1× advance dispute → escalated to founder',
+ featureAsk:'purohit & muhurtam consultation add-on',
+ improvements:['<strong>Purohit / muhurtam consultation add-on</strong> — top family ask → promoted to next sprint',
+ 'Mutual-consent date-change flow — cuts dispute volume',
+ 'Vendor badge ladder — verified → trusted → laureate'],
+ counterLabel:'Bookings confirmed this season', prefix:'', bumpBtn:'Simulate a confirmed booking (+1)', bumpAmt:1, listLabel:'Shortlist a vendor'}
+];
+const GENERIC={name:'VenturePilot',
+ users:'Owner (buys), daily operator (uses), end customer (feels the difference)',
+ p1:'The highest-value recurring task is still done by hand — hours and errors leak weekly (severity 8)',
+ p2:'Follow-ups depend on memory — the loop closes late or never (severity 7)',
+ p3:'Records scattered across chat, sheets and paper — no single source of truth (severity 6)',
+ wedge:'“Close the loop automatically.” Detect the trigger event, run the follow-through, and put the value recovered on one counter.',
+ mvp:'trigger capture → automated follow-through → one-tap confirmation → value counter',
+ cut:'integrations, payments, multi-team roles', hook:'The counter IS the demo, the pitch and the retention hook.',
+ problem:'A weekly, high-value loop is left open by manual process.',
+ stories:['As the operator, the trigger event starts the follow-through without me.',
+ 'As the end customer, I confirm in one tap.',
+ 'As the owner, I see value recovered this month on the home screen.'],
+ metric:'value recovered per account per month',
+ screens:'Today (live loop states) · Queue (ranked follow-ups) · Recovered (the counter)',
+ signature:'An open loop pulses amber, then flips green as it closes — the value prop in one animation.',
+ funnel:'trigger → follow_through → confirmed · median time-to-close',
+ hero:'“The work that used to slip now closes itself.”',
+ market:'derived from the mission — a fragmented long tail underserved by heavyweight suites',
+ evidence:'operators describe the identical weekly leak in forums; adjacent tools remind but never complete the loop',
+ price:'anchored to recovered value → entry tier under ₹1,000/mo',
+ kill:'if <25% of 20 discovery calls confirm the weekly pain, re-select from the pain map',
+ adTargets:'70% high-intent search on the pain phrase itself · 30% lookalikes on pilot accounts',
+ supportThemes:'ranking-logic questions · onboarding imports · 1× billing question → escalated to founder (finance wall)',
+ featureAsk:'multi-operator support',
+ improvements:['<strong>Multi-operator support</strong> — top ask → promoted to next sprint',
+ 'Loop-transparency copy — small fix, ship in patch',
+ 'Median close-time vs target — logic tuned, A/B queued'],
+ counterLabel:'Value recovered this month', prefix:'₹', bumpBtn:'Simulate a closed loop (+₹750)', bumpAmt:750, listLabel:'Add to the queue'};
+function pickPack(m){ for(const p of PACKS) if(p.re.test(m||'')) return p; return GENERIC; }
+
 function demoArtifact(stage,mission){
-  const d=domainOf(mission);
+  const P=pickPack(mission), d=domainOf(mission);
   const M={
   pain:{t:`Pain map — ${d}`,b:
 `Scanned the working day of ${d} for moments where money, time or trust leaks.
 
 <strong>Ranked pain points</strong>
-P1 · No-shows and last-minute cancellations — revenue lost with zero recovery workflow (severity 9, frequency daily)
-P2 · Manual follow-ups after a visit/purchase — done from memory, done badly (severity 7)
-P3 · Records scattered across WhatsApp, paper and one ageing desktop tool (severity 6)
+P1 · ${P.p1}
+P2 · ${P.p2}
+P3 · ${P.p3}
 
-<strong>Selected wedge → P1.</strong> It is felt weekly, priced easily (recovered revenue is measurable), and reachable without integrations on day one. Passing to Research for a kill/proceed verdict.`},
+<strong>Selected wedge → P1.</strong> Felt weekly, priced easily, and reachable without integrations on day one. Passing to Research for a kill/proceed verdict.`},
   validate:{t:`Demand verdict — proceed`,b:
 `<strong>Verdict: PROCEED</strong> (confidence 7.5/10)
 
-Market: ${d} in India — large fragmented long tail; incumbents serve the top decile with heavy suites.
-Evidence: forums and association groups show recurring unprompted complaints about P1; three adjacent tools charge ₹1,500–4,000/mo without solving recovery, only reminders.
-Pricing anchor: value-priced against recovered revenue → ₹999/mo entry is defensible.
-Kill conditions logged: if <25% of 20 discovery calls confirm weekly P1 pain, revert to P2.`},
+Market: ${P.market}.
+Evidence: ${P.evidence}.
+Pricing anchor: ${P.price}.
+Kill condition logged: ${P.kill}.`},
   shape:{t:`Product wedge & positioning`,b:
-`<strong>One-liner:</strong> "The slot that fills itself."
-When a cancellation hits, the product instantly offers the slot to a ranked standby list and confirms a replacement — no calls, no front-desk heroics.
+`<strong>One-liner:</strong> ${P.wedge}
 
-MVP cutline (2 weeks): booking calendar ingest → cancellation trigger → standby waitlist → WhatsApp confirmation → recovered-revenue counter.
-Deliberately cut: payments, multi-branch, analytics suite. The counter IS the demo, the pitch and the retention hook.`},
-  prd:{t:`PRD v1.0 — SlotSaver`,b:
-`<strong>Problem</strong> Cancellations create dead slots; recovery is manual and usually skipped.
-<strong>Users</strong> Owner (buys), front desk (uses), customer (experiences magic).
-<strong>Success metric</strong> ≥30% of cancelled slots refilled within 60 min, visible on a live counter.
+MVP cutline (2 weeks): ${P.mvp}.
+Deliberately cut: ${P.cut}. ${P.hook}`},
+  prd:{t:`PRD v1.0 — ${P.name}`,b:
+`<strong>Problem</strong> ${P.problem}
+<strong>Users</strong> ${P.users}.
+<strong>Success metric</strong> ${P.metric}.
 
 <strong>Core stories</strong>
-1. As front desk, when a booking is cancelled the standby list is pinged automatically in ranked order.
-2. As a standby customer, I confirm with one tap; the slot locks and everyone else is stood down.
-3. As the owner, I see ₹ recovered this month on the home screen.
+1. ${P.stories[0]}
+2. ${P.stories[1]}
+3. ${P.stories[2]}
 
-<strong>Non-goals v1</strong> payments, EHR/ERP integration, iOS native.
-<strong>Guardrail</strong> customer messaging templates require one-time founder approval (Outbound gate).`},
+<strong>Non-goals v1</strong> ${P.cut}.
+<strong>Guardrail</strong> outbound message templates require one-time founder approval (Outbound gate).`},
   ui:{t:`UI system & key screens`,b:
 `Tokens: ink #0B0D12 · surface #141824 · accent teal #2FBFAE · alert amber · DM Sans / DM Mono.
-IA: three screens only — <strong>Today</strong> (timeline with live refill states), <strong>Standby</strong> (ranked list, drag to reorder), <strong>Recovered</strong> (the money counter, month view).
+IA — three screens only: <strong>${P.screens}</strong>.
 
-Signature element: the cancelled slot doesn't go grey — it pulses amber, then flips teal with the replacement's name sliding in. The whole value prop in one animation. Handed to Coding as component specs.`},
-  build:{t:`Build report — RC v0.1.0`,b:
-`Stack: single-file PWA · vanilla JS · localStorage core, sync-layer stubbed · WhatsApp deep-links for confirmations (no API dependency at MVP).
-34 components, 3 screens, offline-first.
-node --check ✓ · lighthouse PWA ✓ · empty/error states written in product voice.
+Signature element: ${P.signature} Handed to Coding as component specs.`},
+  build:{t:`Build report — ${P.name} v0.1.0`,b:
+`Stack: single-file PWA · vanilla JS · localStorage core, sync-layer stubbed · WhatsApp deep-links where messaging is needed (no API dependency at MVP).
+3 screens, offline-first, empty/error states written in product voice.
+node --check ✓ · lighthouse PWA ✓
 Release candidate tagged <strong>v0.1.0</strong>. Requesting the Deploy gate — rollback = static previous build, 30s.`},
   deploy:{t:`Deployment record`,b:
-`<strong>Founder approved.</strong> v0.1.0 shipped to production (simulated target: vercel · slotsaver.app).
+`<strong>Founder approved.</strong> ${P.name} v0.1.0 shipped to production (simulated target: vercel · ${P.name.toLowerCase()}.app).
 Health checks green · rollback armed · release notes posted to company memory. Coding Agent returns to backlog.`},
   analytics:{t:`Analytics registered`,b:
 `Instrumented (privacy-first, no third-party trackers at MVP):
-· slot_cancelled → refill_offered → refill_confirmed funnel
-· time-to-refill (median target <60 min)
-· weekly recovered-₹ per account
-North star: <strong>recovered revenue per account per month</strong>. Dashboards wired to Growth's scope; raw customer data stays inside the customers scope wall.`},
+· ${P.funnel}
+North star: <strong>${P.metric}</strong>. Dashboards wired to Growth’s scope; raw customer data stays inside the customers scope wall.`},
   social:{t:`Launch narrative & social calendar`,b:
 `Voice: calm, specific, zero hustle-bro.
-Hero line: <strong>"Your 4pm just cancelled. Your 4pm is already refilled."</strong>
+Hero line: <strong>${P.hero}</strong>
 
-Week 1 calendar: founder story (why dead slots are a silent tax) → 20-second screen recording of the amber→teal flip → recovered-₹ screenshot from pilot → FAQ thread. Assets drafted to gtm scope; nothing posts without the Outbound gate.`},
+Week 1 calendar: founder story (why this leak is a silent tax) → 20-second screen recording of the signature moment → first real number from pilot → FAQ thread. Assets drafted to gtm scope; nothing posts without the Outbound gate.`},
   ads:{t:`Pilot ad plan — envelope released`,b:
 `<strong>Founder approved ₹25,000 pilot envelope.</strong>
-Split: 60% search (high-intent "reduce no-shows" queries) · 40% Meta lookalikes on pilot customers.
-Kill rule (Finance-enforced): pause any ad set with CAC > 2× first-month price after ₹5,000 spend. Daily spend report writes to gtm; ledger stays with Finance.`},
+Split: ${P.adTargets}.
+Kill rule (Finance-enforced): pause any ad set with CAC > 2× first-month price after ₹5,000 spend. Daily spend report writes to gtm; the ledger stays with Finance.`},
   support:{t:`Support loop — first 48h`,b:
 `11 conversations handled from the product KB. Median first response 40s.
-Themes: 6× "how does the standby list rank people" (answered; KB updated) · 3× onboarding on calendar import · 1× refund question → <strong>escalated to founder</strong> (finance scope wall, working as designed) · 1× feature ask: multi-staff calendars.
-CSAT 4.7/5. Feature ask filed to Growth.`},
+Themes: ${P.supportThemes}.
+CSAT 4.7/5. Feature ask — <strong>${P.featureAsk}</strong> — filed to Growth.`},
   improve:{t:`Improvement brief #1 → product scope`,b:
 `Signal review (analytics + support + social replies):
-1. <strong>Multi-staff calendars</strong> — asked 4× in 48h, blocks bigger accounts → promoted to next sprint.
-2. Standby ranking transparency — small UI copy fix, ship in patch.
-3. Time-to-refill median 71 min vs 60 target — offer window logic tuned, A/B queued.
+1. ${P.improvements[0]}.
+2. ${P.improvements[1]}.
+3. ${P.improvements[2]}.
 
 Loop closed: feedback → ranked brief → PRD delta written back to product scope. The company now improves itself on schedule — with every gate still in place.`}
   };
@@ -838,6 +982,7 @@ async function launchMission(){
   document.getElementById('mvpBtn').style.display='none';
   clearLog();
   log('sys','ORCHESTRATOR',`Mission received: “${m}”. Waking the thirteen. Mode: ${store.live?'LIVE':'DEMO'}.`);
+  if(!store.live) log('sys','ORCHESTRATOR','Demo brain engaged — scenario pack “'+pickPack(m).name+'”. Packs cover clinics/appointments, judging, kirana credit and wedding vendors; other missions use the generic pack. For reasoning specific to ANY mission, switch to Live mode (tap the pill).');
   orbitStatus('mission live — '+m);
   setMissionStrip(m);
   AGENT_STATE.orc='busy';
@@ -997,13 +1142,9 @@ function exportPDF(){
    MVP prototype — the walkaway (stage 6 output)
    ===================================================================== */
 function slug(m){ return (m||'mvp').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'mvp'; }
-function productName(m){
-  const d=domainOf(m).split(' ').filter(Boolean);
-  const w=d[0]?d[0][0].toUpperCase()+d[0].slice(1):'Venture';
-  return w+'Pilot';
-}
+function productName(m){ return pickPack(m).name; }
 function demoMVP(mission){
-  const pn=productName(mission), d=domainOf(mission);
+  const P=pickPack(mission), pn=P.name, d=domainOf(mission);
   const L=[];
   L.push('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">');
   L.push('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
@@ -1020,16 +1161,17 @@ function demoMVP(mission){
   L.push('</style></head><body>');
   L.push('<div class="sim">SIMULATED MVP PROTOTYPE — generated by FounderPilot X (template layer). Not production software.</div>');
   L.push('<header><h1>'+pn+'</h1><div class="sub">A working skeleton for the mission: &ldquo;'+mission+'&rdquo; — built for '+d+'.</div></header>');
-  L.push('<main><div class="card"><div>Value recovered this month</div><div class="big" id="ctr">&#8377;0</div>');
-  L.push('<button onclick="bump()">Simulate a recovered slot (+&#8377;750)</button></div>');
-  L.push('<div class="card"><b>Join the standby list</b><input id="nm" placeholder="Name"><input id="ph" placeholder="Phone">');
+  L.push('<main><div class="card"><div>'+P.counterLabel+'</div><div class="big" id="ctr">0</div>');
+  L.push('<button onclick="bump()">'+P.bumpBtn.replace('₹','&#8377;')+'</button></div>');
+  L.push('<div class="card"><b>'+P.listLabel+'</b><input id="nm" placeholder="Name"><input id="ph" placeholder="Phone">');
   L.push('<button onclick="add()">Add to waitlist</button><ul id="list"></ul></div></main>');
   L.push('<footer>Designed &amp; Architected by Krishnamurthy Kandregula &middot; Made by Claude &middot; FounderPilot X walkaway</footer>');
   L.push('<scr'+'ipt>');
+  L.push('var AMT='+P.bumpAmt+',PRE="'+(P.prefix?'\\u20B9':'')+'";');
   L.push('var v=+(localStorage.getItem("mvp_v")||0),ls=JSON.parse(localStorage.getItem("mvp_l")||"[]");');
-  L.push('function paint(){document.getElementById("ctr").textContent="\\u20B9"+v.toLocaleString("en-IN");');
+  L.push('function paint(){document.getElementById("ctr").textContent=PRE+v.toLocaleString("en-IN");');
   L.push('document.getElementById("list").innerHTML=ls.map(function(x){return "<li>"+x+"</li>"}).join("")}');
-  L.push('function bump(){v+=750;localStorage.setItem("mvp_v",v);paint()}');
+  L.push('function bump(){v+=AMT;localStorage.setItem("mvp_v",v);paint()}');
   L.push('function add(){var n=document.getElementById("nm").value.trim();if(!n)return;');
   L.push('ls.push(n);localStorage.setItem("mvp_l",JSON.stringify(ls));document.getElementById("nm").value="";document.getElementById("ph").value="";paint()}');
   L.push('paint();</'+'script></body></html>');
