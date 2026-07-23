@@ -82,6 +82,10 @@ h1 .x{color:var(--gold);font-weight:700}
 .btn-launch:hover{filter:brightness(1.07)}
 .btn-launch:disabled{filter:grayscale(.7) brightness(.7);cursor:not-allowed}
 .mission-hints{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.mission-note{text-align:center;font-size:12.5px;color:var(--mut);max-width:600px;margin:11px auto 0;line-height:1.6}
+.mission-note b{color:var(--gold-hi);font-weight:600}
+.linkish{color:var(--gold);border-bottom:1px dashed var(--gold);font-size:12.5px;padding:0;font-weight:600}
+.mission-note.warn{color:#E8C88A}
 .hint{font-family:var(--mono);font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:99px;
   padding:5px 12px;background:var(--panel);transition:border-color .15s,color .15s}
 .hint:hover{border-color:var(--gold);color:var(--gold)}
@@ -312,6 +316,11 @@ footer b{color:var(--gold)}
     <button class="hint" onclick="setMission('Build an app for Indian kirana store credit')">Kirana credit app</button>
     <button class="hint" onclick="setMission('Build a tool for hackathon judges')">Hackathon judging tool</button>
   </div>
+  <p class="mission-note" id="missionNote">
+    <b>Tap one of the four missions above</b> for the free scripted demo flight.
+    To fly <b>your own product idea</b>, the thirteen agents must reason for themselves —
+    that needs a <button class="linkish" onclick="openSettings()">Claude API key</button> (Live mode).
+  </p>
 </div>
 
 <nav class="tabs" role="tablist" aria-label="Console sections">
@@ -416,7 +425,7 @@ footer b{color:var(--gold)}
       <option value="demo">Demo — free, deterministic simulation of the full run</option>
       <option value="live">Live — each agent reasons on its own Claude model (uses your key)</option>
     </select>
-    <p class="note">In <b>Live mode</b> every pipeline stage makes one real API call: Opus-class agents for invention, legal and investor reasoning; Sonnet for research, product, design and code; Haiku for marketing, sales and support. Your key is stored in <b>localStorage on this device only</b> and sent directly to Anthropic — no middle server. A full 12-stage run ≈ 13 calls.</p>
+    <p class="note">The four sample missions fly free on scripted scenario packs. <b>Any other product idea automatically flies Live</b> the moment a key is present — because only real reasoning can produce artifacts specific to a new idea. In Live mode every pipeline stage makes one real API call: Opus-class agents for invention, legal and investor reasoning; Sonnet for research, product, design and code; Haiku for marketing, sales and support. Your key is stored in <b>localStorage on this device only</b> and sent directly to Anthropic — no middle server. A full 12-stage run ≈ 13 calls, plus one larger call for the MVP prototype.</p>
     <div class="row">
       <button class="btn" onclick="closeSettings()">Close</button>
       <button class="btn gold" onclick="saveSettings()">Save</button>
@@ -521,6 +530,7 @@ const store = {
   set live(v){ localStorage.setItem('fpx_live',v?'1':'0') },
 };
 let RUN = { active:false, mission:'', stageIx:-1, artifacts:[], pending:null, aborted:false };
+let RUN_LIVE = false;      // live reasoning active for the current flight
 let PULSES = [];           // canvas message pulses
 let AGENT_STATE = {};      // id -> idle|busy|done|gate
 AGENTS.forEach(a=>AGENT_STATE[a.id]='idle');
@@ -972,17 +982,38 @@ Respond with a crisp, concrete artifact (180-260 words max). Use **bold** for ke
    run engine
    ===================================================================== */
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function isKnownMission(m){ return PACKS.some(p=>p.re.test(m||'')); }
+function noteMsg(html,warn){
+  const n=document.getElementById('missionNote');
+  n.innerHTML=html; n.classList.toggle('warn',!!warn);
+}
 async function launchMission(){
   const m=document.getElementById('missionInput').value.trim();
   if(!m){document.getElementById('missionInput').focus();return;}
   if(RUN.active)return;
+
+  /* --- routing: a brand-new idea needs live agents, not a scripted pack --- */
+  const known=isKnownMission(m);
+  RUN_LIVE = (store.live || !known) && !!store.k;
+  if(!known && !store.k){
+    noteMsg('⚠ <b>“'+m.replace(/</g,'&lt;')+'” is a new product idea</b> — no scripted pack covers it, and without a key the agents would produce generic artifacts. '+
+      'Add a <button class="linkish" onclick="openSettings()">Claude API key</button> so the thirteen can reason about it for real — or tap one of the four sample missions above for the free demo flight.', true);
+    openSettings();
+    document.getElementById('missionNote').scrollIntoView({block:'center',behavior:'smooth'});
+    return;
+  }
+  noteMsg(known
+    ? '✓ Scripted demo pack matched — <b>'+pickPack(m).name+'</b>.'+(RUN_LIVE?' Key present, so the agents will reason live instead.':' Flying the free rehearsal.')
+    : '✓ New idea detected — <b>flying Live</b>: all thirteen agents will reason about this mission on their own models.');
+
   RUN={active:true,mission:m,stageIx:-1,artifacts:[],pending:null,aborted:false};
   AGENTS.forEach(a=>setAgent(a.id,'idle'));
   document.getElementById('launchBtn').disabled=true;
   document.getElementById('mvpBtn').style.display='none';
   clearLog();
-  log('sys','ORCHESTRATOR',`Mission received: “${m}”. Waking the thirteen. Mode: ${store.live?'LIVE':'DEMO'}.`);
-  if(!store.live) log('sys','ORCHESTRATOR','Demo brain engaged — scenario pack “'+pickPack(m).name+'”. Packs cover clinics/appointments, judging, kirana credit and wedding vendors; other missions use the generic pack. For reasoning specific to ANY mission, switch to Live mode (tap the pill).');
+  log('sys','ORCHESTRATOR',`Mission received: “${m}”. Waking the thirteen. Mode: ${RUN_LIVE?'LIVE':'DEMO'}.`);
+  if(RUN_LIVE && !known) log('sys','ORCHESTRATOR','No scripted pack matches this mission — auto-engaging Live reasoning so every artifact is specific to it.');
+  if(!RUN_LIVE) log('sys','ORCHESTRATOR','Demo brain engaged — scenario pack “'+pickPack(m).name+'”. The four sample missions have full scripted packs; your own ideas need a key so the agents can reason for real.');
   orbitStatus('mission live — '+m);
   setMissionStrip(m);
   AGENT_STATE.orc='busy';
@@ -1001,7 +1032,7 @@ async function runFrom(ix){
     await sleep(900);
     // produce artifact
     let art;
-    if(store.live && store.k){
+    if(RUN_LIVE){
       try{ log('ag',ag.name,'Reasoning on '+ag.model+' …'); art=await liveArtifact(s,RUN.mission); }
       catch(e){ log('err',ag.name,e.message+' — falling back to demo brain for this stage.'); art=demoArtifact(s,RUN.mission); }
     } else {
@@ -1105,7 +1136,7 @@ function exportPDF(){
     <div class="pd-brand">FOUNDERPILOT X</div>
     <div class="pd-tag">Founder Flight Simulator · Simulation Flight Report</div>
     <div class="pd-mission">“${RUN.mission||'—'}”</div>
-    <div class="pd-meta">${d} · ${store.live?'Live mode — per-agent Claude reasoning':'Demo mode — deterministic simulation'} · ${RUN.artifacts.length} artifacts · ${done?'run complete':'run in progress'}${RUN.mvp?' · MVP prototype: '+RUN.mvp.name+' ('+(RUN.mvp.how==='claude'?'Claude-generated':'template')+')':''}</div>
+    <div class="pd-meta">${d} · ${RUN_LIVE?'Live mode — per-agent Claude reasoning':'Demo mode — scripted scenario pack'} · ${RUN.artifacts.length} artifacts · ${done?'run complete':'run in progress'}${RUN.mvp?' · MVP prototype: '+RUN.mvp.name+' ('+(RUN.mvp.how==='claude'?'Claude-generated':'template')+')':''}</div>
     <div class="pd-meta" style="margin-top:26pt">Designed &amp; Architected by Krishnamurthy Kandregula · Made by Claude</div>
   </div>`;
 
@@ -1199,7 +1230,7 @@ Respond with ONLY the HTML document — no explanation, no markdown fences.`;
 }
 async function buildMVP(art){
   let code=null, how='template';
-  if(store.live && store.k){
+  if(RUN_LIVE){
     try{
       log('ag','Coding Agent','Generating a working single-file MVP from the PRD (this is the long call)…');
       code=await liveMVP(RUN.mission); how='claude';
@@ -1233,6 +1264,7 @@ function saveSettings(){
   store.k=document.getElementById('apiKey').value.trim();
   store.live = document.getElementById('liveToggle').value==='live' && !!store.k;
   refreshMode(); closeSettings();
+  if(store.k) noteMsg('✓ <b>Key saved.</b> Any product idea you type will now be flown live — all thirteen agents reasoning on their own models. The four sample missions still run free scripted packs unless Live mode is on.');
   log('sys','SYSTEM','Mode set to '+(store.live?'LIVE — real per-agent reasoning enabled.':'DEMO — free deterministic simulation.'));
 }
 function refreshMode(){
