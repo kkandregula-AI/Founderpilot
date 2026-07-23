@@ -996,8 +996,8 @@ async function launchMission(){
   const known=isKnownMission(m);
   RUN_LIVE = (store.live || !known) && !!store.k;
   if(!known && !store.k){
-    noteMsg('⚠ <b>“'+m.replace(/</g,'&lt;')+'” is a new product idea</b> — no scripted pack covers it, and without a key the agents would produce generic artifacts. '+
-      'Add a <button class="linkish" onclick="openSettings()">Claude API key</button> so the thirteen can reason about it for real — or tap one of the four sample missions above for the free demo flight.', true);
+    noteMsg('⚠ <b>“'+m.replace(/</g,'&lt;')+'” is a new product idea</b> — the thirteen agents need to reason about it live. '+
+      'Add a <button class="linkish" onclick="openSettings()">Claude API key</button> to fly it — or tap one of the four sample missions above for the free demo flight.', true);
     openSettings();
     document.getElementById('missionNote').scrollIntoView({block:'center',behavior:'smooth'});
     return;
